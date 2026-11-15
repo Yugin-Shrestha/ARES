@@ -325,7 +325,6 @@ export default function MarsGlobe({
   });
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false);
   const [splitPos, setSplitPos] = useState<number>(0.5);
-  const [viewerError, setViewerError] = useState<string | null>(null);
 
   const callbackRefs = useRef({
     onSelectCoordinate,
@@ -516,40 +515,31 @@ export default function MarsGlobe({
 
     Cesium.Ellipsoid.default = MARS_ELLIPSOID;
 
-    let viewer: Cesium.Viewer;
-    try {
-      const globe = new Cesium.Globe(MARS_ELLIPSOID);
-      globe.baseColor = Cesium.Color.fromCssColorString('#61392e');
-      globe.enableLighting = false;
-      globe.depthTestAgainstTerrain = false;
+    const globe = new Cesium.Globe(MARS_ELLIPSOID);
+    globe.baseColor = Cesium.Color.fromCssColorString('#61392e');
+    globe.enableLighting = false;
+    globe.depthTestAgainstTerrain = false;
 
-      viewer = new Cesium.Viewer(containerRef.current, {
-        ellipsoid: MARS_ELLIPSOID,
-        globe,
-        mapProjection: new Cesium.GeographicProjection(MARS_ELLIPSOID),
-        terrainProvider: new Cesium.EllipsoidTerrainProvider({ ellipsoid: MARS_ELLIPSOID }),
-        baseLayer: false,
-        skyAtmosphere: new Cesium.SkyAtmosphere(MARS_ELLIPSOID),
-        geocoder: false,
-        homeButton: false,
-        sceneModePicker: false,
-        baseLayerPicker: false,
-        navigationHelpButton: false,
-        animation: false,
-        timeline: false,
-        fullscreenButton: false,
-        infoBox: false,
-        selectionIndicator: false,
-        creditContainer: document.createElement('div'),
-        requestRenderMode: false,
-      });
-    } catch (err) {
-      console.error('Cesium Viewer initialization failed:', err);
-      setViewerError(err instanceof Error ? err.message : 'Unable to initialize 3D WebGL Mars Globe');
-      return;
-    }
-
-    const globe = viewer.scene.globe;
+    const viewer = new Cesium.Viewer(containerRef.current, {
+      ellipsoid: MARS_ELLIPSOID,
+      globe,
+      mapProjection: new Cesium.GeographicProjection(MARS_ELLIPSOID),
+      terrainProvider: new Cesium.EllipsoidTerrainProvider({ ellipsoid: MARS_ELLIPSOID }),
+      baseLayer: false,
+      skyAtmosphere: new Cesium.SkyAtmosphere(MARS_ELLIPSOID),
+      geocoder: false,
+      homeButton: false,
+      sceneModePicker: false,
+      baseLayerPicker: false,
+      navigationHelpButton: false,
+      animation: false,
+      timeline: false,
+      fullscreenButton: false,
+      infoBox: false,
+      selectionIndicator: false,
+      creditContainer: document.createElement('div'),
+      requestRenderMode: false,
+    });
 
     if (viewer.scene.skyAtmosphere) {
       viewer.scene.skyAtmosphere.perFragmentAtmosphere = true;
@@ -4674,19 +4664,6 @@ export default function MarsGlobe({
         ref={containerRef}
         className={`h-full w-full ${pickMode !== 'inspect' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`}
       />
-
-      {viewerError && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#05070B]/95 p-6">
-          <div className="max-w-md rounded-xl border border-amber-500/40 bg-[#0B0F17] p-5 text-slate-200 shadow-2xl">
-            <h2 className="font-display text-base font-semibold text-amber-400">
-              3D WebGL Mars Globe Unavailable
-            </h2>
-            <p className="mt-2 text-xs leading-relaxed text-slate-300">
-              {viewerError}. Please ensure hardware acceleration / WebGL is enabled in your browser.
-            </p>
-          </div>
-        </div>
-      )}
 
       {splitCompareLayerId && !flightSim?.active && !roverSim?.active && !satelliteSim?.active && (
         <div

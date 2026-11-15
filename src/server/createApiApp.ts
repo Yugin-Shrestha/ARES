@@ -92,28 +92,6 @@ export function createApiApp(): Express {
   const app = express();
   app.use(express.json({ limit: '2mb' }));
 
-  // Normalize Vercel rewrite (/api/:path* -> /api/index?path=...) when req.url is rewritten
-  app.use((req, _res, next) => {
-    if (req.path === '/api/index' && req.query.path !== undefined) {
-      const rawPath = Array.isArray(req.query.path)
-        ? req.query.path.join('/')
-        : String(req.query.path);
-      const cleanPath = rawPath.replace(/^\/+/, '');
-      const params = new URLSearchParams();
-      for (const [key, value] of Object.entries(req.query)) {
-        if (key === 'path' || value === undefined) continue;
-        if (Array.isArray(value)) {
-          for (const v of value) params.append(key, String(v));
-        } else {
-          params.append(key, String(value));
-        }
-      }
-      const qs = params.toString();
-      req.url = `/api/${cleanPath}${qs ? `?${qs}` : ''}`;
-    }
-    next();
-  });
-
   const jsonCache = new Map<string, CacheEntry<unknown>>();
   const tileCache = new Map<string, CacheEntry<Buffer>>();
   const modelCache = new Map<string, { data: Buffer; expiresAt: number }>();
